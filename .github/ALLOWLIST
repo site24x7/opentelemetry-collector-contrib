@@ -17,6 +17,7 @@ cmd/configschema
 examples/demo/client
 examples/demo/server
 exporter/parquetexporter
+exporter/site24x7exporter
 extension/fluentbitextension
 extension/httpforwarder
 extension/sigv4authextension
