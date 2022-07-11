@@ -2,7 +2,7 @@ name: "CodeQL Analysis"
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main,site24x7-exporter ]
 
 jobs:
   CodeQL-Build:

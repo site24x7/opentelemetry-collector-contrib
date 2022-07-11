@@ -671,6 +671,8 @@ replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sentr
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter => ./exporter/signalfxexporter
 
+replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/site24x7exporter => ./exporter/site24x7exporter
+
 replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/skywalkingexporter => ./exporter/skywalkingexporter
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter => ./exporter/splunkhecexporter

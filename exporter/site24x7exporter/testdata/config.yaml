@@ -1,0 +1,21 @@
+receivers:
+  nop:
+
+processors:
+  nop:
+
+exporters:
+  site24x7:
+    dc: us
+    apikey: us_1234
+
+
+service:
+  pipelines:
+    traces:
+      receivers: [nop]
+      processors: [nop]
+      exporters: [site24x7]
+    logs:
+      receivers: [nop]
+      exporters: [site24x7]
