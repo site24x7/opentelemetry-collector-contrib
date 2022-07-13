@@ -15,26 +15,17 @@
 package site24x7exporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/site24x7exporter"
 
 import (
-	"bytes"
-	"compress/gzip"
 	"context"
-	"crypto/tls"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-version"
 
-	"go.opentelemetry.io/collector/model/pdata"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 
 )
 
-func (e *site24x7exporter) CreateTelemetrySpan(span pdata.Span,
+func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 	resourceAttr map[string]interface{},
 	serviceName string,
 	instLibrary string,
@@ -94,15 +85,15 @@ func (e *site24x7exporter) CreateTelemetrySpan(span pdata.Span,
 
 	spanKind := "UNSPECIFIED"
 	switch span.Kind() {
-	case pdata.SpanKindInternal:
+	case ptrace.SpanKindInternal:
 		spanKind = "INTERNAL"
-	case pdata.SpanKindServer:
+	case ptrace.SpanKindServer:
 		spanKind = "SERVER"
-	case pdata.SpanKindClient:
+	case ptrace.SpanKindClient:
 		spanKind = "CLIENT"
-	case pdata.SpanKindProducer:
+	case ptrace.SpanKindProducer:
 		spanKind = "PRODUCER"
-	case pdata.SpanKindConsumer:
+	case ptrace.SpanKindConsumer:
 		spanKind = "CONSUMER"
 	}
 
@@ -241,7 +232,7 @@ func (e *site24x7exporter) CreateTelemetrySpan(span pdata.Span,
 	return tspan
 }
 
-func (e *site24x7exporter) ConsumeTraces(_ context.Context, td pdata.Traces) error {
+func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
 
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -311,7 +302,7 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td pdata.Traces) err
 		}
 	}
 	
-	buf, err := json.Marshal(spanList)
+	/*buf, err := json.Marshal(spanList)
 	if err != nil {
 		fmt.Println("Error in converting traces data ", err)
 		return err
@@ -320,12 +311,18 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td pdata.Traces) err
 	if err != nil {
 		fmt.Println("Error in sending traces data ", err)
 		return err
+	}*/
+
+	err := e.SendOtelTraces(spanList)
+
+	if err != nil {
+		fmt.Println("Error in exporting traces", err)
 	}
 
 	return err
 }
 
-func (e *site24x7exporter) SendCatalyst(responseBody *bytes.Buffer) error {
+/*func (e *site24x7exporter) SendCatalyst(responseBody *bytes.Buffer) error {
 	// Deprecated end-point. 
 	var urlBuf bytes.Buffer
 	//fmt.Println("Sending to Site24x7: ", responseBody)
@@ -381,4 +378,4 @@ func SendAppLogs(e *site24x7exporter, buf []byte, spanCount int) error {
 	}
 	fmt.Println("Uploaded traces information: ", res.Header)
 	return err
-}
+}*/

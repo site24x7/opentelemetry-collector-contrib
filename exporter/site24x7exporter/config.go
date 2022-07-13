@@ -39,11 +39,11 @@ type Config struct {
 
 	// Data centre to push data: Supported config - us,eu,cn,au,in,local
 	DataCentre string `mapstructure:"dc"`
-	// URL to which the opentelemetry data is pushed to. Only applicable when dc is set to local
-	Url string `mapstructure:"url"`
+	// host to which the opentelemetry data is pushed to. Only applicable when dc is set to local
+	Host string `mapstructure:"host"`
 	// API Key of site24x7.
 	APIKEY string `mapstructure:"apikey"`
-	// Is url insecure? Only applicable when dc is set to local
+	// Is https to host insecure? Only applicable when dc is set to local
 	Insecure bool `mapstructure:"insecure"`
 }
 
@@ -58,13 +58,14 @@ func (cfg *Config) Validate() error {
 	case "cn":
 	case "au":
 	case "in":
-		if cfg.Url != "" {
-			return errors.New("url must not be given for non-local dc")
+	case "jp":
+		if cfg.Host != "" {
+			return errors.New("host must not be given for non-local dc")
 		}
 		fmt.Println("Data centre validation passed")
 	case "local":
-		if cfg.Url == "" {
-			return errors.New("url must be non-empty")
+		if cfg.Host == "" {
+			return errors.New("Host must be non-empty")
 		}
 	}
 

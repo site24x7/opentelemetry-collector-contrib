@@ -44,6 +44,6 @@ func TestLoadConfig(t *testing.T) {
 			ExporterSettings: config.NewExporterSettings(config.NewIDWithName(typeStr, "2")),
 			APIKEY:			  "ab_123",
 			DataCentre:		  "local",
-			Url:			  "https://logu.localsite24x7.com/upload/site24x7postservlet",
+			Host:			  "plusinsight.localsite24x7.in",
 		})
 }

@@ -47,29 +47,20 @@ func createDefaultConfig() config.Exporter {
 		QueueSettings:    exporterhelper.NewDefaultQueueSettings(),
 		APIKEY: "ab_123",
 		DataCentre: "local",
-		Url: "https://logu.localsite24x7.com/upload/site24x7postservlet",
+		Host: "plusinsight.localsite24x7.in",
 		Insecure: true,
 	}
 }
 
-func getDCUrl(
+func getDCHost(
 	cfg config.Exporter,
 ) (string) {
-	switch cfg.(*Config).DataCentre {
-	case "us":
-		return "https://logu.site24x7.com/upload/site24x7postservlet"
-	case "eu":
-		return "https://logu.site24x7.eu/upload/site24x7postservlet"
-	case "cn":
-		return "https://logu.site24x7.cn/upload/site24x7postservlet"
-	case "au":
-		return "https://logu.site24x7.net.au/upload/site24x7postservlet"
-	case "in":
-		return "https://logu.site24x7.in/upload/site24x7postservlet"
-	case "local":
-		return cfg.(*Config).Url
+	dchost := getDataCentreHost(cfg.(*Config).DataCentre)
+	if dchost == "" {
+		dchost = cfg.(*Config).Host
 	}
-	return cfg.(*Config).Url
+
+	return dchost
 }
 
 func getDCUrlSecurity(
@@ -81,6 +72,7 @@ func getDCUrlSecurity(
 	case "cn":
 	case "au":
 	case "in":
+	case "jp":
 		return false
 	}
 	return cfg.(*Config).Insecure
@@ -93,7 +85,7 @@ func createTracesExporter(
 ) (component.TracesExporter, error) {
 	s247exp :=  &site24x7exporter{
 			dc: cfg.(*Config).DataCentre,
-			url:  getDCUrl(cfg),
+			host:  getDCHost(cfg),
 			apikey: cfg.(*Config).APIKEY,
 			insecure: getDCUrlSecurity(cfg),
 		}
@@ -114,7 +106,7 @@ func createMetricsExporter(
 ) (component.MetricsExporter, error) {
 	s247exp :=  &site24x7exporter{
 		dc: cfg.(*Config).DataCentre,
-		url:  getDCUrl(cfg),
+		host:  getDCHost(cfg),
 		apikey: cfg.(*Config).APIKEY,
 		insecure: getDCUrlSecurity(cfg),
 	}
@@ -134,7 +126,7 @@ func createLogsExporter(
 ) (component.LogsExporter, error) {
 	s247exp :=  &site24x7exporter{
 		dc: cfg.(*Config).DataCentre,
-		url:  getDCUrl(cfg),
+		host:  getDCHost(cfg),
 		apikey: cfg.(*Config).APIKEY,
 		insecure: getDCUrlSecurity(cfg),
 	}

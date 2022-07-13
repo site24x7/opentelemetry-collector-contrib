@@ -1,0 +1,202 @@
+package site24x7exporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/site24x7exporter"
+
+import (
+	"bytes"
+	"compress/gzip"
+	"crypto/tls"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	
+	"github.com/google/uuid"
+	
+)
+
+// returns Data centre host names. Nil if not found. 
+func getDataCentreHost(
+	dc string,
+) (string) {
+	switch dc {
+	case "us":
+		return "plusinsight.site24x7.com"
+	case "eu": 
+		return "plusinsight.site24x7.eu"
+	case "cn":
+		return "plusinsight.site24x7.cn"
+	case "au": 
+		return "plusinsight.site24x7.net.au"
+	case "in":
+		return "plusinsight.site24x7.in"
+	case "jp": 
+		return "plusinsight.site24x7.jp"
+	}
+	return ""
+}
+
+func getDCConnectUrl(
+	dc string,
+	host string,
+	apikey string,
+) (string) {
+	var urlBuf bytes.Buffer
+	dchost := getDataCentreHost(dc)
+	if dchost == "" {
+		dchost = host
+	}
+	fmt.Fprint(&urlBuf, "https://", dchost, "/otel/connect?license.key=", apikey)
+	return urlBuf.String()
+}
+
+func getTraceUrl(
+	dc string, 
+	host string,
+	apikey string,
+) (string) {
+	var urlBuf bytes.Buffer
+	dchost := getDataCentreHost(dc)
+	if dchost == "" {
+		dchost = host
+	}
+	fmt.Fprint(&urlBuf, "https://", dchost, "/otel/trace?license.key=", apikey)
+	return urlBuf.String()
+}
+
+func getLogsUrl(
+	dc string, 
+	host string,
+	apikey string,
+) (string) {
+	var urlBuf bytes.Buffer
+	dchost := getDataCentreHost(dc)
+	if dchost == "" {
+		dchost = host
+	}
+	fmt.Fprint(&urlBuf, "https://", dchost, "/otel/logs?license.key=", apikey)
+	return urlBuf.String()
+}
+
+func getMetricsUrl(
+	dc string, 
+	host string,
+	apikey string,
+) (string) {
+	var urlBuf bytes.Buffer
+	dchost := getDataCentreHost(dc)
+	if dchost == "" {
+		dchost = host
+	}
+	fmt.Fprint(&urlBuf, "https://", dchost, "/otel/metrics?license.key=", apikey)
+	return urlBuf.String()
+}
+
+// Sends traces in applogs format. Requires logtype to be initialized in connect
+func (e *site24x7exporter) SendOtelTraces(spanList []TelemetrySpan) error {
+	// Convert the spanlist to Json. 	
+	buf, err := json.Marshal(spanList)
+	if err != nil {
+		fmt.Println("Error in converting traces data ", err)
+		return err
+	}
+	// Applogs server requires gzip compression. 
+	var gzbuf bytes.Buffer
+	g := gzip.NewWriter(&gzbuf)
+	g.Write(buf)
+	g.Close()
+
+	client := http.Client{}
+	traceUrl := getTraceUrl(e.dc,e.host,e.apikey)
+
+	req , err := http.NewRequest("POST", traceUrl, &gzbuf)
+	if err != nil {
+		//Handle Error
+		fmt.Println("Error initializing Url: ", err)
+		return err
+	}
+
+	hostname, err := os.Hostname()
+
+	req.Header = http.Header{
+		"apikey": []string{e.apikey},
+		"Content-Type": []string{"application/json"},
+		"logtype": []string{"s247apmopentelemetrytracing"},
+		"x-service": []string{"MX"},
+		"x-streammode": []string{"1"},
+		"log-size": []string{strconv.Itoa(len(buf))},
+		"upload-id": []string{uuid.New().String()},
+		"agentuid": []string{hostname},
+		"Content-Encoding": []string{"gzip"},
+		"User-Agent": []string{"site24x7exporter"},
+	}
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
+
+	res , err := client.Do(req)
+	if err != nil {
+		//Handle Error
+		fmt.Println("Error in posting Telemetry traces to the server: ", err)
+		return err
+	}
+	fmt.Println("Uploaded traces information: ", res.Header)
+	return err
+}
+
+// Sends logs in applogs format. Requires logtype to be initialized in connect
+func (e *site24x7exporter) SendOtelLogs(logRecords []TelemetryLog) error {
+	// All data must be in gzipped json format. 
+	buf, err := json.Marshal(logRecords)
+	if err != nil {
+		errstr := err.Error()
+		fmt.Println("Error in converting telemetry logs: ", errstr)
+		
+		return err
+	}
+
+	var gzbuf bytes.Buffer
+	g := gzip.NewWriter(&gzbuf)
+	g.Write(buf)
+	g.Close()
+	client := http.Client{}
+	logsUrl := getLogsUrl(e.dc,e.host,e.apikey)
+
+	req , err := http.NewRequest("POST", logsUrl, &gzbuf)
+	if err != nil {
+		//Handle Error
+		fmt.Println("Error initializing Url: ", err)
+		return err
+	}
+	hostname, err := os.Hostname()
+	req.Header = http.Header{
+		"apikey": []string{e.apikey},
+		"Content-Type": []string{"application/json"},
+		"logtype": []string{"s247otellogs"},
+		"x-service": []string{"MX"},
+		"x-streammode": []string{"1"},
+		"log-size": []string{strconv.Itoa(len(buf))},
+		"upload-id": []string{uuid.New().String()},
+		"agentuid": []string{hostname},
+		"Content-Encoding": []string{"gzip"},
+		"User-Agent": []string{"site24x7exporter"},
+	}
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
+	res , err := client.Do(req)
+	if err != nil {
+		//Handle Error
+		fmt.Println("Error in posting telemetry logs to the server: ", err)
+		return err
+	}
+	fmt.Println("Uploaded logs information: ", res.Header)
+	
+	return err
+}
+// Sends traces in json/file format.
+/*func (e *site24x7exporter) SendRawTraces(spanlist []TelemetrySpan) error {
+	// Deprecated. 
+	return nil
+}*/
+// Sends logs in json/file format. 
+/*func (e *site24x7exporter) SendRawLogs(logRecords []TelemetryLog) error {
+	// Deprecated. 
+	return nil
+}*/
