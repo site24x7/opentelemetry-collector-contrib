@@ -24,8 +24,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
-func convertLogToMap(lr plog.LogRecord) map[string]interface {
-	out := map[string]interface{}
+func convertLogToMap(lr plog.LogRecord) map[string]interface{} {
+	out := map[string]interface{}{}
 
 	if lr.Body().Type() == pcommon.ValueTypeString {
 		out["log"] = lr.Body().StringVal()
@@ -64,16 +64,16 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 
 	if attrVal, found := tlogAttr["msg"]; found {
 		tlogMsg = attrVal.(string)
-		delete(attrVal, "msg")
+		delete(tlogAttr, "msg")
 	}
 	if tlogKvSpanId, found := tlogAttr["span_id"]; found {
 		tlogSpanId = tlogKvSpanId.(string)
-		delete(attrVal, "span_id")
+		delete(tlogAttr, "span_id")
 	}
 
 	if tlogKvTraceId, found := tlogAttr["trace_id"]; found {
 		tlogTraceId = tlogKvTraceId.(string)
-		delete(attrVal, "trace_id")
+		delete(tlogAttr, "trace_id")
 	}
 
 	if tlogKvTraceFlags, found := tlogAttr["trace_flags"]; found {
@@ -83,12 +83,12 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		} else {
 			tlogFlags = 0
 		}
-		delete(attrVal, "trace_flags")
+		delete(tlogAttr, "trace_flags")
 	}
 
 	if tlogKvFileName, found := tlogAttr["log.file.name"]; found {
 		tlogName = tlogKvFileName.(string)
-		delete(attrVal, "log.file.name")
+		delete(tlogAttr, "log.file.name")
 	}
 
 	if resourceInstance, found := resourceAttr["instance"]; found {
