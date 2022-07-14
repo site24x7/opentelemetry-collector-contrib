@@ -17,6 +17,7 @@ package site24x7exporter // import "github.com/open-telemetry/opentelemetry-coll
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -57,23 +58,28 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 	tlogTraceId := logrecord.TraceID().HexString()
 	tlogSpanId := logrecord.SpanID().HexString()
 	tlogFlags := logrecord.Flags()
+	var droppedattr uint32
 
 	var tlogInstanceName, tlogName string
 
 	tlogAttr := convertLogToMap(logrecord)
+	droppedattr = logrecord.DroppedAttributesCount()
 
 	if attrVal, found := tlogAttr["msg"]; found {
 		tlogMsg = attrVal.(string)
 		delete(tlogAttr, "msg")
+		droppedattr++
 	}
 	if tlogKvSpanId, found := tlogAttr["span_id"]; found {
 		tlogSpanId = tlogKvSpanId.(string)
 		delete(tlogAttr, "span_id")
+		droppedattr++
 	}
 
 	if tlogKvTraceId, found := tlogAttr["trace_id"]; found {
 		tlogTraceId = tlogKvTraceId.(string)
 		delete(tlogAttr, "trace_id")
+		droppedattr++
 	}
 
 	if tlogKvTraceFlags, found := tlogAttr["trace_flags"]; found {
@@ -84,31 +90,40 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 			tlogFlags = 0
 		}
 		delete(tlogAttr, "trace_flags")
+		droppedattr++
 	}
 
 	if tlogKvFileName, found := tlogAttr["log.file.name"]; found {
 		tlogName = tlogKvFileName.(string)
 		delete(tlogAttr, "log.file.name")
+		delete(tlogAttr, "log")
+		droppedattr++
 	}
 
 	if resourceInstance, found := resourceAttr["instance"]; found {
 		tlogInstanceName = resourceInstance.(string)
 	} else {
-		tlogInstanceName = "localhost"
+		hostname, err := os.Hostname()
+		if err != nil {
+			tlogInstanceName = "localhost"
+		} else {
+			tlogInstanceName = hostname
+		}
 	}
 
 	tlog := TelemetryLog{
-		Timestamp:          startTime,
-		S247UID:            "otel-s247exporter",
-		LogLevel:           logrecord.SeverityText(),
-		TraceId:            tlogTraceId,
-		SpanId:             tlogSpanId,
-		TraceFlag:          tlogFlags,
-		Instance:			tlogInstanceName,
-		ResourceAttributes: resourceAttr,
-		LogAttributes:      tlogAttr,
-		Name:               tlogName,
-		Message:            tlogMsg,
+		Timestamp:          	startTime,
+		S247UID:           		"otel-s247exporter",
+		LogLevel:          		logrecord.SeverityText(),
+		TraceId:           		tlogTraceId,
+		SpanId:            		tlogSpanId,
+		TraceFlag:         		tlogFlags,
+		Instance:				tlogInstanceName,
+		ResourceAttributes:		resourceAttr,
+		LogAttributes:     		tlogAttr,
+		Name:              		tlogName,
+		Message:           		tlogMsg,
+		DroppedAttributesCount: droppedattr,
 	}
 	return tlog
 }
