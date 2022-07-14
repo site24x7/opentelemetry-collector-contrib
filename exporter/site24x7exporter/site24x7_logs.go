@@ -151,15 +151,8 @@ func (e *site24x7exporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		}
 	}
 
-	/*buf, err := json.Marshal(logList)
-	if err != nil {
-		errstr := err.Error()
-		fmt.Println("Error in converting telemetry logs: ", errstr)
-		
-		return err
-	}*/
-
-	err := e.SendOtelLogs(logList)
+	//err := e.SendOtelLogs(logList)
+	err := e.SendRawLogs(logList)
 
 	if err != nil {
 		fmt.Println("Error in exporting telemetry logs: ", err)
@@ -167,43 +160,3 @@ func (e *site24x7exporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 	
 	return err
 }
-
-/*func SendAppLogs(e *site24x7exporter, buf []byte) error {
-	
-	client := http.Client{}
-
-	var gzbuf bytes.Buffer
-	g := gzip.NewWriter(&gzbuf)
-	g.Write(buf)
-	g.Close()
-	var urlBuf string
-	fmt.Fprint(&urlBuf, "https://", e.host, "/otel/logs?license.key=",e.apikey)
-	req , err := http.NewRequest("POST", urlBuf, &gzbuf)
-	if err != nil {
-		//Handle Error
-		fmt.Println("Error initializing Url: ", err)
-		return err
-	}
-	hostname, err := os.Hostname()
-	req.Header = http.Header{
-		"apikey": []string{e.apikey},
-		"Content-Type": []string{"application/json"},
-		"logtype": []string{"s247otellogs"},
-		"x-service": []string{"MX"},
-		"x-streammode": []string{"1"},
-		"log-size": []string{strconv.Itoa(len(buf))},
-		"upload-id": []string{uuid.New().String()},
-		"agentuid": []string{hostname},
-		"Content-Encoding": []string{"gzip"},
-		"User-Agent": []string{"site24x7exporter"},
-	}
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
-	res , err := client.Do(req)
-	if err != nil {
-		//Handle Error
-		fmt.Println("Error initializing Url: ", err)
-		return err
-	}
-	fmt.Println("Uploaded logs information: ", res.Header)
-	return err
-}*/

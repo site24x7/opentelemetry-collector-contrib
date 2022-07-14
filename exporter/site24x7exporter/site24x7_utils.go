@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -190,13 +191,54 @@ func (e *site24x7exporter) SendOtelLogs(logRecords []TelemetryLog) error {
 	
 	return err
 }
-// Sends traces in json/file format.
-/*func (e *site24x7exporter) SendRawTraces(spanlist []TelemetrySpan) error {
-	// Deprecated. 
-	return nil
-}*/
-// Sends logs in json/file format. 
-/*func (e *site24x7exporter) SendRawLogs(logRecords []TelemetryLog) error {
-	// Deprecated. 
-	return nil
-}*/
+// Deprecated. Sends traces in json/file format.
+func (e *site24x7exporter) SendRawTraces(spanList []TelemetrySpan) error {
+	// Convert the spanlist to Json. 	
+	buf, err := json.Marshal(spanList)
+	if err != nil {
+		fmt.Println("Error in converting traces data ", err)
+		return err
+	}
+	traceUrl := getTraceUrl(e.dc,e.host,e.apikey)
+	responseBody := bytes.NewBuffer(buf)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
+	resp, err := http.Post(traceUrl, "application/json", responseBody)
+	if err != nil {
+		fmt.Println("Error in posting data to url: ", err)
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response: ", err)
+		return err
+	}
+	fmt.Println("Response data: ", body)
+	return err
+}
+// Deprecated. Sends logs in json/file format. 
+func (e *site24x7exporter) SendRawLogs(logRecords []TelemetryLog) error {
+	// Convert Log data to json format. 
+	buf, err := json.Marshal(logRecords)
+	if err != nil {
+		errstr := err.Error()
+		fmt.Println("Error in converting telemetry logs: ", errstr)
+		return err
+	}
+	logsUrl := getLogsUrl(e.dc,e.host,e.apikey)
+	responseBody := bytes.NewBuffer(buf)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
+	resp, err := http.Post(logsUrl, "application/json", responseBody)
+	if err != nil {
+		fmt.Println("Error in posting data to url: ", err)
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response: ", err)
+		return err
+	}
+	fmt.Println("Response data: ", body)
+	return err
+}

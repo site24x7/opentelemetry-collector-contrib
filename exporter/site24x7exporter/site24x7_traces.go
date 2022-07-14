@@ -301,19 +301,9 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) er
 			}
 		}
 	}
-	
-	/*buf, err := json.Marshal(spanList)
-	if err != nil {
-		fmt.Println("Error in converting traces data ", err)
-		return err
-	}
-	err = SendAppLogs(e, buf, len(spanList))
-	if err != nil {
-		fmt.Println("Error in sending traces data ", err)
-		return err
-	}*/
 
-	err := e.SendOtelTraces(spanList)
+	//err := e.SendOtelTraces(spanList)
+	err := e.SendRawTraces(spanList)
 
 	if err != nil {
 		fmt.Println("Error in exporting traces", err)
@@ -321,61 +311,3 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) er
 
 	return err
 }
-
-/*func (e *site24x7exporter) SendCatalyst(responseBody *bytes.Buffer) error {
-	// Deprecated end-point. 
-	var urlBuf bytes.Buffer
-	//fmt.Println("Sending to Site24x7: ", responseBody)
-	fmt.Fprint(&urlBuf, e.url, "?license.key=", e.apikey)
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
-	resp, err := http.Post(urlBuf.String(), "application/json", responseBody)
-	if err != nil {
-		fmt.Println("Error in posting data to url: ", err)
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response: ", err)
-		return err
-	}
-	fmt.Println("Response data: ", body)
-	return err
-}
-
-func SendAppLogs(e *site24x7exporter, buf []byte, spanCount int) error {
-	client := http.Client{}
-
-	var gzbuf bytes.Buffer
-	g := gzip.NewWriter(&gzbuf)
-	g.Write(buf)
-	g.Close()
-	req , err := http.NewRequest("POST", e.url, &gzbuf)
-	if err != nil {
-		//Handle Error
-		fmt.Println("Error initializing Url: ", err)
-		return err
-	}
-	hostname, err := os.Hostname()
-	req.Header = http.Header{
-		"apikey": []string{e.apikey},
-		"Content-Type": []string{"application/json"},
-		"logtype": []string{"s247apmopentelemetrytracing"},
-		"x-service": []string{"MX"},
-		"x-streammode": []string{"1"},
-		"log-size": []string{strconv.Itoa(len(buf))},
-		"upload-id": []string{uuid.New().String()},
-		"agentuid": []string{hostname},
-		"Content-Encoding": []string{"gzip"},
-		"User-Agent": []string{"site24x7exporter"},
-	}
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
-	res , err := client.Do(req)
-	if err != nil {
-		//Handle Error
-		fmt.Println("Error initializing Url: ", err)
-		return err
-	}
-	fmt.Println("Uploaded traces information: ", res.Header)
-	return err
-}*/
