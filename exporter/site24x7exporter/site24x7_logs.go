@@ -24,8 +24,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
-func convertLogToMap(lr plog.LogRecord) map[string]string {
-	out := map[string]string{}
+func convertLogToMap(lr plog.LogRecord) map[string]interface {
+	out := map[string]interface{}
 
 	if lr.Body().Type() == pcommon.ValueTypeString {
 		out["log"] = lr.Body().StringVal()
@@ -57,47 +57,39 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 	tlogTraceId := logrecord.TraceID().HexString()
 	tlogSpanId := logrecord.SpanID().HexString()
 	tlogFlags := logrecord.Flags()
-	var tlogInstanceName string
+
+	var tlogInstanceName, tlogName string
 
 	tlogAttr := convertLogToMap(logrecord)
 
 	if attrVal, found := tlogAttr["msg"]; found {
-		tlogMsg = attrVal
+		tlogMsg = attrVal.(string)
+		delete(attrVal, "msg")
 	}
 	if tlogKvSpanId, found := tlogAttr["span_id"]; found {
-		tlogSpanId = tlogKvSpanId
+		tlogSpanId = tlogKvSpanId.(string)
+		delete(attrVal, "span_id")
 	}
 
 	if tlogKvTraceId, found := tlogAttr["trace_id"]; found {
-		tlogTraceId = tlogKvTraceId
+		tlogTraceId = tlogKvTraceId.(string)
+		delete(attrVal, "trace_id")
 	}
 
 	if tlogKvTraceFlags, found := tlogAttr["trace_flags"]; found {
-		tlogTraceId = tlogKvTraceFlags
+		u64, err := strconv.ParseUint(tlogKvTraceFlags.(string),10,32)
+		if err != nil {
+			tlogFlags =  uint32(u64)
+		} else {
+			tlogFlags = 0
+		}
+		delete(attrVal, "trace_flags")
 	}
 
-	/*switch tlogBodyType {
-	case pcommon.ValueTypeString:
-		tlogMsg = logrecord.Body().AsString()
-		
-	case pcommon.ValueTypeMap:
-		tlogKvList := logrecord.Body().MapVal().AsRaw()
-		// if kvlist gives "msg":"<logmsg>"
-		if attrVal, found := tlogKvList["msg"]; found {
-			//tLogValue := v1.KeyValueList(tlogKvList).GetValues()
-			tlogMsg = attrVal.(string)
-		} else {
-			tlogMsg = logrecord.Body().AsString()
-		}
-
-		if tlogKvSpanId, found := tlogKvList["span_id"]; found {
-			tlogSpanId = tlogKvSpanId.(string)
-		}
-
-		if tlogKvTraceId, found := tlogKvList["trace_id"]; found {
-			tlogTraceId = tlogKvTraceId.(string)
-		}
-	}*/
+	if tlogKvFileName, found := tlogAttr["log.file.name"]; found {
+		tlogName = tlogKvFileName.(string)
+		delete(attrVal, "log.file.name")
+	}
 
 	if resourceInstance, found := resourceAttr["instance"]; found {
 		tlogInstanceName = resourceInstance.(string)
@@ -114,8 +106,8 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		TraceFlag:          tlogFlags,
 		Instance:			tlogInstanceName,
 		ResourceAttributes: resourceAttr,
-		LogAttributes:      logrecord.Attributes().AsRaw(),
-		//Name:               logrecord.Name(),
+		LogAttributes:      tlogAttr,
+		Name:               tlogName,
 		Message:            tlogMsg,
 	}
 	return tlog
