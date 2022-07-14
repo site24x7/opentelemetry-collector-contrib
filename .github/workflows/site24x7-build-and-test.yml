@@ -1,7 +1,7 @@
 name: site24x7-build-and-test
 on:
   push:
-    branches: [ main ]
+    branches: [ main,site24x7-exporter ]
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
@@ -10,7 +10,7 @@ env:
 
 jobs:
   setup-environment:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - name: Checkout Repo
@@ -34,7 +34,7 @@ jobs:
         if: steps.go-cache.outputs.cache-hit != 'true'
         run: make install-tools
   check-collector-module-version:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -42,7 +42,7 @@ jobs:
       - name: Check Collector Module Version
         run: ./.github/workflows/scripts/check-collector-module-version.sh
   check-codeowners:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -62,7 +62,7 @@ jobs:
           - extension
           - internal
           - other
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -93,13 +93,13 @@ jobs:
       - name: Lint
         run: make -j2 golint GROUP=${{ matrix.group }}
   lint:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment, lint-matrix]
     steps:
       - name: Unit Tests Complete
         run: echo "lint complete"
   checks:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -150,7 +150,7 @@ jobs:
           - extension
           - internal
           - other
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -184,14 +184,14 @@ jobs:
     strategy:
       matrix:
         go-version: [1.18, 1.17]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment, unittest-matrix]
     steps:
       - name: Unit Tests Complete
         run: echo "unittest (${{ matrix.go-version }}) complete"
 
   integration-tests:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -212,7 +212,7 @@ jobs:
         run: make integration-tests-with-cover
 
   correctness-traces:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -238,7 +238,7 @@ jobs:
       - name: Correctness
         run: make -C testbed run-correctness-traces-tests
   correctness-metrics:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -265,7 +265,7 @@ jobs:
         run: make -C testbed run-correctness-metrics-tests
 
   build-examples:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [setup-environment]
     steps:
       - name: Checkout Repo
@@ -274,7 +274,7 @@ jobs:
         run: make build-examples
 
   cross-compile:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [unittest, integration-tests, lint]
     strategy:
       matrix:
@@ -326,7 +326,7 @@ jobs:
           path: ./bin/*
 
   build-package:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [cross-compile]
     strategy:
       fail-fast: false
@@ -370,7 +370,7 @@ jobs:
           path: ./dist/*
   windows-msi:
     if: false # skip. See https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/10113
-    runs-on: windows-latest
+    runs-on: self-hosted
     needs: [cross-compile]
     steps:
       - name: Checkout Repo
@@ -406,7 +406,7 @@ jobs:
           path: ./dist/*.msi
 
   publish-check:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [build-package]
     steps:
       - name: Checkout Repo
@@ -424,7 +424,7 @@ jobs:
         id: check
         run: ./.github/workflows/scripts/verify-dist-files-exist.sh
   publish-dev:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [lint, unittest, integration-tests, build-package]
     if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.repository == 'open-telemetry/opentelemetry-collector-contrib'
     steps:
@@ -489,7 +489,7 @@ jobs:
             docker push otel/opentelemetry-collector-contrib-dev:$GITHUB_SHA
             docker push otel/opentelemetry-collector-contrib-dev:latest
   publish-stable:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [lint, unittest, integration-tests, build-package]
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'open-telemetry/opentelemetry-collector-contrib'
     steps:

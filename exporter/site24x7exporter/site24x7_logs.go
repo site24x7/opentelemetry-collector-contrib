@@ -17,10 +17,38 @@ package site24x7exporter // import "github.com/open-telemetry/opentelemetry-coll
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"go.opentelemetry.io/collector/pdata/plog"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
+
+func convertLogToMap(lr plog.LogRecord) map[string]string {
+	out := map[string]string{}
+
+	if lr.Body().Type() == pcommon.ValueTypeString {
+		out["log"] = lr.Body().StringVal()
+	}
+
+	lr.Attributes().Range(func(k string, v pcommon.Value) bool {
+		switch v.Type() {
+		case pcommon.ValueTypeString:
+			out[k] = v.StringVal()
+		case pcommon.ValueTypeInt:
+			out[k] = strconv.FormatInt(v.IntVal(), 10)
+		case pcommon.ValueTypeDouble:
+			out[k] = strconv.FormatFloat(v.DoubleVal(), 'f', -1, 64)
+		case pcommon.ValueTypeBool:
+			out[k] = strconv.FormatBool(v.BoolVal())
+		default:
+			panic("missing case")
+		}
+		return true
+	})
+
+	return out
+}
 
 func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr map[string]interface{}) TelemetryLog {
 	startTime := (logrecord.Timestamp().AsTime().UnixNano() / int64(time.Millisecond))
@@ -28,13 +56,31 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 	tlogMsg := logrecord.Body().AsString()
 	tlogTraceId := logrecord.TraceID().HexString()
 	tlogSpanId := logrecord.SpanID().HexString()
+	tlogFlags := logrecord.Flags()
 	var tlogInstanceName string
 
+	tlogAttr := convertLogToMap(logrecord)
+
+	if attrVal, found := tlogAttr["msg"]; found {
+		tlogMsg = attrVal
+	}
+	if tlogKvSpanId, found := tlogAttr["span_id"]; found {
+		tlogSpanId = tlogKvSpanId
+	}
+
+	if tlogKvTraceId, found := tlogAttr["trace_id"]; found {
+		tlogTraceId = tlogKvTraceId
+	}
+
+	if tlogKvTraceFlags, found := tlogAttr["trace_flags"]; found {
+		tlogTraceId = tlogKvTraceFlags
+	}
+
 	/*switch tlogBodyType {
-	case plog.AttributeValueTypeString:
+	case pcommon.ValueTypeString:
 		tlogMsg = logrecord.Body().AsString()
 		
-	case plog.AttributeValueTypeMap:
+	case pcommon.ValueTypeMap:
 		tlogKvList := logrecord.Body().MapVal().AsRaw()
 		// if kvlist gives "msg":"<logmsg>"
 		if attrVal, found := tlogKvList["msg"]; found {
@@ -65,7 +111,7 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		LogLevel:           logrecord.SeverityText(),
 		TraceId:            tlogTraceId,
 		SpanId:             tlogSpanId,
-		TraceFlag:          logrecord.Flags(),
+		TraceFlag:          tlogFlags,
 		Instance:			tlogInstanceName,
 		ResourceAttributes: resourceAttr,
 		LogAttributes:      logrecord.Attributes().AsRaw(),
