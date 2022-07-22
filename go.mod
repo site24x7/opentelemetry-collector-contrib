@@ -39,7 +39,6 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sentryexporter v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/signalfxexporter v0.55.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/site24x7exporter v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/skywalkingexporter v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/splunkhecexporter v0.55.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sumologicexporter v0.55.0
@@ -414,6 +413,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/metadataproviders v0.55.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.55.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk v0.55.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/site24x7exporter v0.55.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchperresourceattr v0.55.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/batchpersignal v0.55.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/experimentalmetricmetadata v0.55.0 // indirect

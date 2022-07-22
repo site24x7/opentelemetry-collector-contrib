@@ -213,7 +213,7 @@ func (e *site24x7exporter) SendRawTraces(spanList []TelemetrySpan) error {
 		fmt.Println("Error reading response: ", err)
 		return err
 	}
-	fmt.Println("Response data: ", body)
+	fmt.Println("Uploaded Traces Information! Response from server: ", body)
 	return err
 }
 // Deprecated. Sends logs in json/file format. 
@@ -239,6 +239,6 @@ func (e *site24x7exporter) SendRawLogs(logRecords []TelemetryLog) error {
 		fmt.Println("Error reading response: ", err)
 		return err
 	}
-	fmt.Println("Response data: ", body)
+	fmt.Println("Uploaded Logs Information! Response from server: ", body)
 	return err
 }
