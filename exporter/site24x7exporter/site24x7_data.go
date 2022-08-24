@@ -32,10 +32,10 @@ type TelemetryCustomParam struct {
 type TelemetrySpan struct {
 	Timestamp    int64	 `json:"_zl_timestamp"`
 	S247UID      string	 `json:"s247agentuid"`
-	TraceId      string  `json:"trace_id,omitempty"`
-	SpanId       string  `json:"span_id,omitempty"`
-	ParentSpanId string  `json:"parent_id,omitempty"`
-	RootSpanId	 string  `json:"origin_name,omitempty"`
+	TraceID      string  `json:"trace_id,omitempty"`
+	SpanID       string  `json:"span_id,omitempty"`
+	ParentSpanID string  `json:"parent_id,omitempty"`
+	RootSpanID	 string  `json:"origin_name,omitempty"`
 	Name         string  `json:"name,omitempty"`
 	Kind         string  `json:"span_kind,omitempty"`
 	StartTime    int64   `json:"start_time,omitempty"`
@@ -70,7 +70,7 @@ type TelemetrySpan struct {
 	// spans->attributes[]->key('net.peer.port')
 	HostPort int64 `json:"host_port"`
 	// spans->attributes[]->key('thread.id')
-	ThreadId int64 `json:"thread_id"`
+	ThreadID int64 `json:"thread_id"`
 	// spans->attributes[]->key('thread.name')
 	ThreadName string `json:"thread_name,omitempty"`
 	// spans->attributes[]->key('db.system')
@@ -82,11 +82,11 @@ type TelemetrySpan struct {
 	// spans->attributes[]->key('db.connection_string')
 	DbConnStr string `json:"connection_string,omitempty"`
 	// spans->attributes[]->key('http.url') or name.
-	HttpUrl string `json:"url,omitempty"`
+	HTTPURL string `json:"url,omitempty"`
 	// spans->attributes[]->key('http.method')
-	HttpMethod string `json:"http_method,omitempty"`
+	HTTPMethod string `json:"http_method,omitempty"`
 	// spans->attributes[]->key('http.status_code')
-	HttpStatusCode int64 `json:"http_status_code"`
+	HTTPStatusCode int64 `json:"http_status_code"`
 
 	// if parentspanid is empty.
 	IsRoot bool `json:"root"`
@@ -110,8 +110,8 @@ type TelemetrySpan struct {
 }
 
 type TelemetryLog struct {
-	TraceId                string              `json:"TraceId"`
-	SpanId                 string              `json:"SpanId"`
+	TraceID                string              `json:"TraceId"`
+	SpanID                 string              `json:"SpanId"`
 	Timestamp              int64               `json:"_zl_timestamp"`
 	S247UID                string              `json:"s247agentuid"`
 	Name                   string              `json:"name"`

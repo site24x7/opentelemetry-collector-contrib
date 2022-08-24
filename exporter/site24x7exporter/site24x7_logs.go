@@ -55,8 +55,8 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 	startTime := (logrecord.Timestamp().AsTime().UnixNano() / int64(time.Millisecond))
 	//tlogBodyType := logrecord.Body().Type()
 	tlogMsg := logrecord.Body().AsString()
-	tlogTraceId := logrecord.TraceID().HexString()
-	tlogSpanId := logrecord.SpanID().HexString()
+	tlogTraceID := logrecord.TraceID().HexString()
+	tlogSpanID := logrecord.SpanID().HexString()
 	tlogFlags := logrecord.Flags()
 	var droppedattr uint32
 
@@ -70,14 +70,14 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		delete(tlogAttr, "msg")
 		droppedattr++
 	}
-	if tlogKvSpanId, found := tlogAttr["span_id"]; found {
-		tlogSpanId = tlogKvSpanId.(string)
+	if tlogKvSpanID, found := tlogAttr["span_id"]; found {
+		tlogSpanID = tlogKvSpanID.(string)
 		delete(tlogAttr, "span_id")
 		droppedattr++
 	}
 
-	if tlogKvTraceId, found := tlogAttr["trace_id"]; found {
-		tlogTraceId = tlogKvTraceId.(string)
+	if tlogKvTraceID, found := tlogAttr["trace_id"]; found {
+		tlogTraceID = tlogKvTraceID.(string)
 		delete(tlogAttr, "trace_id")
 		droppedattr++
 	}
@@ -115,8 +115,8 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		Timestamp:          	startTime,
 		S247UID:           		"otel-s247exporter",
 		LogLevel:          		logrecord.SeverityText(),
-		TraceId:           		tlogTraceId,
-		SpanId:            		tlogSpanId,
+		TraceID:           		tlogTraceID,
+		SpanID:            		tlogSpanID,
 		TraceFlag:         		tlogFlags,
 		Instance:				tlogInstanceName,
 		ResourceAttributes:		resourceAttr,
@@ -151,8 +151,8 @@ func (e *site24x7exporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		}
 	}
 
-	//err := e.SendOtelLogs(logList)
-	err := e.SendRawLogs(logList)
+	err := e.SendOtelLogs(logList)
+	//err := e.SendRawLogs(logList)
 
 	if err != nil {
 		fmt.Println("Error in exporting telemetry logs: ", err)

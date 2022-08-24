@@ -64,6 +64,9 @@ func exportMessageAsLine(e *site24x7exporter, buf []byte) error {
 	fmt.Fprint(&urlBuf, "https://", e.host, "/otel/metrics?license.key=",e.apikey);
 
 	resp, err := http.Post(urlBuf.String(), "application/json", responseBody)
+	if err != nil {
+		return err
+	}
 	fmt.Println("Posting telemetry data to url. ")
 	defer resp.Body.Close()
 	//Read the response body
@@ -79,10 +82,10 @@ func exportMessageAsLine(e *site24x7exporter, buf []byte) error {
 func (e *site24x7exporter) Start(context.Context, component.Host) error {
 	// Todo: Send arh/otel/connect and check for response. 
 	var responseBody bytes.Buffer
-	connectUrl := getDCConnectUrl(e.dc, e.host, e.apikey)
+	connectURL := getDCConnectURL(e.dc, e.host, e.apikey)
 	
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
-	resp, err := http.Post(connectUrl, "application/json", &responseBody)
+	resp, err := http.Post(connectURL, "application/json", &responseBody)
 	if err != nil {
 		fmt.Println("Error in posting data to url: ", err)
 		return err
