@@ -132,11 +132,8 @@ func (e *site24x7exporter) SendOtelTraces(spanList []TelemetrySpan) error {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-<<<<<<< HEAD
 		//Handle Error
 		fmt.Println("Error getting hostname: ", err)
-=======
->>>>>>> 1f4754129a1d1299d4ff112e32dd3699bdbaa93c
 		return err
 	}
 
