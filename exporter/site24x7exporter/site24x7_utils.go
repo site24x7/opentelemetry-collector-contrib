@@ -50,7 +50,7 @@ func getDataCentreHost(
 	return ""
 }
 
-func getDCConnectUrl(
+func getDCConnectURL(
 	dc string,
 	host string,
 	apikey string,
@@ -64,7 +64,7 @@ func getDCConnectUrl(
 	return urlBuf.String()
 }
 
-func getTraceUrl(
+func getTraceURL(
 	dc string, 
 	host string,
 	apikey string,
@@ -78,7 +78,7 @@ func getTraceUrl(
 	return urlBuf.String()
 }
 
-func getLogsUrl(
+func getLogsURL(
 	dc string, 
 	host string,
 	apikey string,
@@ -121,9 +121,9 @@ func (e *site24x7exporter) SendOtelTraces(spanList []TelemetrySpan) error {
 	g.Close()
 
 	client := http.Client{}
-	traceUrl := getTraceUrl(e.dc,e.host,e.apikey)
+	traceURL := getTraceURL(e.dc,e.host,e.apikey)
 
-	req , err := http.NewRequest("POST", traceUrl, &gzbuf)
+	req , err := http.NewRequest("POST", traceURL, &gzbuf)
 	if err != nil {
 		//Handle Error
 		fmt.Println("Error initializing Url: ", err)
@@ -132,8 +132,11 @@ func (e *site24x7exporter) SendOtelTraces(spanList []TelemetrySpan) error {
 
 	hostname, err := os.Hostname()
 	if err != nil {
+<<<<<<< HEAD
 		//Handle Error
 		fmt.Println("Error getting hostname: ", err)
+=======
+>>>>>>> 1f4754129a1d1299d4ff112e32dd3699bdbaa93c
 		return err
 	}
 
@@ -178,9 +181,9 @@ func (e *site24x7exporter) SendOtelLogs(logRecords []TelemetryLog) error {
 	g.Write(buf)
 	g.Close()
 	client := http.Client{}
-	logsUrl := getLogsUrl(e.dc,e.host,e.apikey)
+	logsURL := getLogsURL(e.dc,e.host,e.apikey)
 
-	req , err := http.NewRequest("POST", logsUrl, &gzbuf)
+	req , err := http.NewRequest("POST", logsURL, &gzbuf)
 	if err != nil {
 		//Handle Error
 		fmt.Println("Error initializing Url: ", err)
@@ -223,10 +226,10 @@ func (e *site24x7exporter) SendRawTraces(spanList []TelemetrySpan) error {
 		fmt.Println("Error in converting traces data ", err)
 		return err
 	}
-	traceUrl := getTraceUrl(e.dc,e.host,e.apikey)
+	traceURL := getTraceURL(e.dc,e.host,e.apikey)
 	responseBody := bytes.NewBuffer(buf)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
-	resp, err := http.Post(traceUrl, "application/json", responseBody)
+	resp, err := http.Post(traceURL, "application/json", responseBody)
 	if err != nil {
 		fmt.Println("Error in posting data to url: ", err)
 		return err
@@ -249,10 +252,10 @@ func (e *site24x7exporter) SendRawLogs(logRecords []TelemetryLog) error {
 		fmt.Println("Error in converting telemetry logs: ", errstr)
 		return err
 	}
-	logsUrl := getLogsUrl(e.dc,e.host,e.apikey)
+	logsURL := getLogsURL(e.dc,e.host,e.apikey)
 	responseBody := bytes.NewBuffer(buf)
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
-	resp, err := http.Post(logsUrl, "application/json", responseBody)
+	resp, err := http.Post(logsURL, "application/json", responseBody)
 	if err != nil {
 		fmt.Println("Error in posting data to url: ", err)
 		return err

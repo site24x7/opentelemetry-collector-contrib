@@ -32,7 +32,7 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 	instLibraryVersion string,
 	telSDKLang string,
 	telSDKName string,
-	rootSpanId string,) TelemetrySpan {
+	rootSpanID string,) TelemetrySpan {
 
 	spanAttr := span.Attributes().AsRaw()
 	startTime := (span.StartTimestamp().AsTime().UnixNano()) // int64(time.Millisecond))
@@ -98,10 +98,10 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 	}
 
 	// Host attributes
-	var hostIp, hostName, threadname string
+	var hostIP, hostName, threadname string
 	var hostPort, threadid int64
 	if attrval, found := spanAttr["net.peer.ip"]; found {
-		hostIp = attrval.(string)
+		hostIP = attrval.(string)
 	}
 	if attrval, found := spanAttr["net.peer.name"]; found {
 		hostName = attrval.(string)
@@ -168,9 +168,9 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 		telemetryParams = append(telemetryParams, telemetrycustomParam)
 	}
 
-	spanid := span.SpanID().HexString()
-	traceId := span.TraceID().HexString()
-	parentspanId := span.ParentSpanID().HexString()
+	SpanID := span.SpanID().HexString()
+	TraceID := span.TraceID().HexString()
+	parentSpanID := span.ParentSpanID().HexString()
 	spanName := span.Name()
 	
 	startTimeMs := (startTime / int64(time.Millisecond))
@@ -178,10 +178,10 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 	tspan := TelemetrySpan{
 		Timestamp:          	startTimeMs,
 		S247UID:	            "otel-s247exporter",
-		SpanId:                 spanid,
-		TraceId:                traceId,
-		ParentSpanId:           parentspanId,
-		RootSpanId: 			rootSpanId,
+		SpanID:                 SpanID,
+		TraceID:                TraceID,
+		ParentSpanID:           parentSpanID,
+		RootSpanID: 			rootSpanID,
 		Name:                   spanName,
 		Kind:                   spanKind,
 		StartTime:              startTime,
@@ -208,11 +208,11 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 		TelemetrySDKLanguage:          telSDKLang,
 		TelemetrySDKName:              telSDKName,
 
-		HostIP:   hostIp,
+		HostIP:   hostIP,
 		HostName: hostName,
 		HostPort: hostPort,
 
-		ThreadId:   threadid,
+		ThreadID:   threadid,
 		ThreadName: threadname,
 
 		DbSystem:    dbsystem,
@@ -220,9 +220,9 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 		DbName:      dbname,
 		DbConnStr:   dbconnstr,
 
-		HttpUrl:        httpurl,
-		HttpMethod:     httpmethod,
-		HttpStatusCode: httpstatus,
+		HTTPURL:        httpurl,
+		HTTPMethod:     httpmethod,
+		HTTPStatusCode: httpstatus,
 
 		IsRoot:   isRoot,
 		HasError: hasError,
@@ -253,12 +253,12 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) er
 
 			for k := 0; k < ispanItems.Len(); k++ {
 				span := ispanItems.At(k)
-				var rootSpanId string
-				var traceId string
+				var rootSpanID string
+				var TraceID string
 				if span.ParentSpanID().IsEmpty() {
-					traceId = span.TraceID().HexString()
-					rootSpanId = span.Name()
-					rootSpanList[traceId] = rootSpanId
+					TraceID = span.TraceID().HexString()
+					rootSpanID = span.Name()
+					rootSpanList[TraceID] = rootSpanID
 				} 
 			}
 		}
@@ -291,12 +291,12 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) er
 			for k := 0; k < ispanItems.Len(); k++ {
 				span := ispanItems.At(k)
 				
-				rootSpanId := rootSpanList[span.TraceID().HexString()]
+				rootSpanID := rootSpanList[span.TraceID().HexString()]
 				
 				s247span := e.CreateTelemetrySpan(span, resourceAttr,
 					serviceName,
 					instLibName, instLibVer,
-					telSDKLang, telSDKName, rootSpanId)
+					telSDKLang, telSDKName, rootSpanID)
 				spanList = append(spanList, s247span)
 			}
 		}

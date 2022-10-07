@@ -15,39 +15,32 @@ package site24x7exporter
 
 import (
 	"context"
-	"errors"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	"go.opentelemetry.io/collector/model/otlp"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/testdata"
 )
-type testConfig struct {
+/*type testConfig struct {
 	apikey string
-}
-func testTraceData(t *testing.T, expected []TelemetrySpan, td pdate.Trace, apiKey string, dc string) {
-	ctx := context.Background()
-	f := NewFactory()
-	require.NoError(t, err)
-	assert.Equal(t, expected, m.Batches)
-}
+}*/
 
-func newTestTraces() pdata.Traces {
-	td := pdata.NewTraces()
-	sps := td.ResourceSpans().AppendEmpty().InstrumentationLibrarySpans().AppendEmpty().Spans()
-	s1 := sps.AppendEmpty()
-	s1.SetName("a")
-	s1.SetTraceID(pdata.NewTraceID([16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0}))
-	s1.SetSpanID(pdata.NewSpanID([8]byte{0, 0, 0, 0, 0, 0, 0, 1}))
-	
-	s2 := sps.AppendEmpty()
-	s2.SetName("b")
-	s2.SetTraceID(pdata.NewTraceID([16]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0}))
-	s2.SetSpanID(pdata.NewSpanID([8]byte{0, 0, 0, 0, 0, 0, 0, 2}))
-	return td
+func testTraceData(t *testing.T) {
+	f := NewFactory()
+	cfg := &Config{
+		DataCentre: "local",
+		Host: "plusinsight.localsite24x7.in",
+		APIKEY: "0123456789abcdef",
+		Insecure: true,
+	}
+
+	se, err := f.CreateTracesExporter(context.Background(), componenttest.NewNopExporterCreateSettings(), cfg)
+	assert.NoError(t, err)
+
+	td := testdata.GenerateTracesTwoSpansSameResource()
+	assert.NoError(t, se.Start(context.Background(), componenttest.NewNopHost()))
+	assert.NoError(t, se.ConsumeTraces(context.Background(), td))
+	assert.NoError(t, se.Shutdown(context.Background()))
+
 }
