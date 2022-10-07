@@ -65,6 +65,7 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 	tlogAttr := convertLogToMap(logrecord)
 	droppedattr = logrecord.DroppedAttributesCount()
 
+
 	if attrVal, found := tlogAttr["msg"]; found {
 		tlogMsg = attrVal.(string)
 		delete(tlogAttr, "msg")
@@ -100,6 +101,15 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		droppedattr++
 	}
 
+	tlogCustomAttr := make([]TelemetryCustomParam, 0, len(tlogAttr))
+	for k,v := range tlogAttr {
+		tlogCustomParam := TelemetryCustomParam{
+			Key:   k,
+			Value: v,
+		}
+		tlogCustomAttr = append(tlogCustomAttr, tlogCustomParam)
+	}
+
 	if resourceInstance, found := resourceAttr["instance"]; found {
 		tlogInstanceName = resourceInstance.(string)
 	} else {
@@ -111,6 +121,15 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		}
 	}
 
+	tlogResourceCustomAttr := make([]TelemetryCustomParam, 0, len(resourceAttr))
+	for k,v := range resourceAttr {
+		tlogCustomParam := TelemetryCustomParam{
+			Key:   k,
+			Value: v,
+		}
+		tlogResourceCustomAttr = append(tlogResourceCustomAttr, tlogCustomParam)
+	}
+
 	tlog := TelemetryLog{
 		Timestamp:          	startTime,
 		S247UID:           		"otel-s247exporter",
@@ -119,8 +138,10 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 		SpanId:            		tlogSpanId,
 		TraceFlag:         		tlogFlags,
 		Instance:				tlogInstanceName,
-		ResourceAttributes:		resourceAttr,
-		LogAttributes:     		tlogAttr,
+		//ResourceAttributes:		resourceAttr,
+		//LogAttributes:     		tlogAttr,
+		ResourceAttributes:		tlogResourceCustomAttr,
+		LogAttributes:			tlogCustomAttr,
 		Name:              		tlogName,
 		Message:           		tlogMsg,
 		DroppedAttributesCount: droppedattr,
@@ -151,8 +172,8 @@ func (e *site24x7exporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
 		}
 	}
 
-	//err := e.SendOtelLogs(logList)
-	err := e.SendRawLogs(logList)
+	err := e.SendOtelLogs(logList)
+	//err := e.SendRawLogs(logList)
 
 	if err != nil {
 		fmt.Println("Error in exporting telemetry logs: ", err)

@@ -64,6 +64,10 @@ func exportMessageAsLine(e *site24x7exporter, buf []byte) error {
 	fmt.Fprint(&urlBuf, "https://", e.host, "/otel/metrics?license.key=",e.apikey);
 
 	resp, err := http.Post(urlBuf.String(), "application/json", responseBody)
+	if err != nil {
+		fmt.Println("failed to export the data ", err)
+		return err
+	}
 	fmt.Println("Posting telemetry data to url. ")
 	defer resp.Body.Close()
 	//Read the response body
@@ -76,8 +80,10 @@ func exportMessageAsLine(e *site24x7exporter, buf []byte) error {
 	return nil
 }
 
-func (e *site24x7exporter) Start(context.Context, component.Host) error {
-	// Todo: Send arh/otel/connect and check for response. 
+func (e *site24x7exporter) Start(ctx context.Context, host component.Host) error {
+	// Todo: Send arh/otel/connect and check for response.
+	apiKey :=  ctx.Value("api-key")
+	e.apikey = apiKey.(string)
 	var responseBody bytes.Buffer
 	connectUrl := getDCConnectUrl(e.dc, e.host, e.apikey)
 	

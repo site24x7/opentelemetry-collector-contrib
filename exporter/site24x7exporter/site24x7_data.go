@@ -114,12 +114,14 @@ type TelemetryLog struct {
 	SpanId                 string              `json:"SpanId"`
 	Timestamp              int64               `json:"_zl_timestamp"`
 	S247UID                string              `json:"s247agentuid"`
-	Name                   string              `json:"name"`
-	Instance			   string			   `json:"instance"`
+	Name                   string              `json:"Name"`
+	Instance			   string			   `json:"Instance"`
 	LogLevel               string              `json:"LogLevel"`
 	Message                string              `json:"Message"`
-	LogAttributes          telemetryAttributes `json:"attributes"`
-	ResourceAttributes     telemetryAttributes `json:"ResourceAttributes"`
+	//LogAttributes          telemetryAttributes `json:"attributes"`
+	//ResourceAttributes     telemetryAttributes `json:"ResourceAttributes"`
+	LogAttributes          []TelemetryCustomParam `json:"attributes"`
+	ResourceAttributes     []TelemetryCustomParam `json:"ResourceAttributes"`
 	DroppedAttributesCount uint32              `json:"DroppedAttributesCount"`
-	TraceFlag              uint32              `json:"TraceFlag"`
+	TraceFlag              uint32              `json:"TraceFlags"`
 }

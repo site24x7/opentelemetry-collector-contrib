@@ -131,6 +131,11 @@ func (e *site24x7exporter) SendOtelTraces(spanList []TelemetrySpan) error {
 	}
 
 	hostname, err := os.Hostname()
+	if err != nil {
+		//Handle Error
+		fmt.Println("Error getting hostname: ", err)
+		return err
+	}
 
 	req.Header = http.Header{
 		"apikey": []string{e.apikey},
@@ -182,6 +187,11 @@ func (e *site24x7exporter) SendOtelLogs(logRecords []TelemetryLog) error {
 		return err
 	}
 	hostname, err := os.Hostname()
+	if err != nil {
+		//Handle Error
+		fmt.Println("Error getting hostname: ", err)
+		return err
+	}
 	req.Header = http.Header{
 		"apikey": []string{e.apikey},
 		"Content-Type": []string{"application/json"},
