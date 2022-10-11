@@ -17,7 +17,7 @@ package site24x7exporter // import "github.com/open-telemetry/opentelemetry-coll
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
+	//"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
