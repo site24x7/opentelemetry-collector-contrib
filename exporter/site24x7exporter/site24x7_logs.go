@@ -16,6 +16,7 @@ package site24x7exporter // import "github.com/open-telemetry/opentelemetry-coll
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -149,9 +150,16 @@ func (e *site24x7exporter) CreateLogItem(logrecord plog.LogRecord, resourceAttr 
 	return tlog
 }
 
-func (e *site24x7exporter) ConsumeLogs(_ context.Context, ld plog.Logs) error {
+func (e *site24x7exporter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
+
+	apiKey :=  ctx.Value("api-key")
+	if apiKey == nil {
+		fmt.Println("Error reading context header api-key. ")
+		return errors.New("api-key header not sent")
+	}
+	e.apikey = apiKey.(string)
 
 	logCount := ld.LogRecordCount()
 	logList := make([]TelemetryLog, 0, logCount)

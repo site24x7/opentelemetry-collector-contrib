@@ -82,9 +82,8 @@ func exportMessageAsLine(e *site24x7exporter, buf []byte) error {
 
 func (e *site24x7exporter) Start(ctx context.Context, host component.Host) error {
 	// Todo: Send arh/otel/connect and check for response.
-	apiKey :=  ctx.Value("api-key")
-	e.apikey = apiKey.(string)
-	var responseBody bytes.Buffer
+	
+	/*var responseBody bytes.Buffer
 	connectURL := getDCConnectURL(e.dc, e.host, e.apikey)
 	
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: e.insecure}
@@ -100,7 +99,9 @@ func (e *site24x7exporter) Start(ctx context.Context, host component.Host) error
 		return err
 	}
 	fmt.Println("Response data: ", body)
-	return err
+	return err */
+	
+	return nil // arh/connect cannot be sent for all Cx data as each will have a different api-key
 }
 
 // Shutdown stops the exporter and is invoked during shutdown.

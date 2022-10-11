@@ -69,9 +69,11 @@ func (cfg *Config) Validate() error {
 		}
 	}
 
+	/*
+	API key check is no longer needed as each request is going to have the header
 	if cfg.APIKEY == "" {
 		return errors.New("API Key must be non-empty")
-	}
+	}*/ 
 
 	return nil
 }

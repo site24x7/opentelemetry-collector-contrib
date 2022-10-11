@@ -16,6 +16,7 @@ package site24x7exporter // import "github.com/open-telemetry/opentelemetry-coll
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -232,11 +233,17 @@ func (e *site24x7exporter) CreateTelemetrySpan(span ptrace.Span,
 	return tspan
 }
 
-func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) error {
+func (e *site24x7exporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) error {
 
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 
+	apiKey :=  ctx.Value("api-key")
+	if apiKey == nil {
+		fmt.Println("Error reading context header api-key. ")
+		return errors.New("api-key header not sent")
+	}
+	e.apikey = apiKey.(string)
 	resourcespans := td.ResourceSpans()
 	spanCount := td.SpanCount()
 	rootSpanList := make(map[string]string)
@@ -301,7 +308,6 @@ func (e *site24x7exporter) ConsumeTraces(_ context.Context, td ptrace.Traces) er
 			}
 		}
 	}
-
 	//err := e.SendOtelTraces(spanList)
 	err := e.SendRawTraces(spanList)
 
